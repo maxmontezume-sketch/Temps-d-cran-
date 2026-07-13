@@ -216,17 +216,6 @@
         </div>
       </div>
 
-      <section class="grid-card">
-        <h2>Ta vie qu'il reste, en semaines</h2>
-        <p class="cap">Chaque case = 1 semaine de vie restante.</p>
-        <div class="legend">
-          <span><i class="swatch" style="background:var(--bone)"></i> à vivre</span>
-          <span><i class="swatch" style="background:var(--sand)"></i> équivalent passé sur l'écran</span>
-        </div>
-        <div class="grid" id="grid" role="img" aria-label="Grille des semaines de vie restantes"></div>
-        <p class="grid-foot" id="gridFoot"></p>
-      </section>
-
       <p class="note" id="note"></p>
     </main>
   </div>
@@ -242,29 +231,13 @@
     totalVal:$('totalVal'), lostVal:$('lostVal'),
     lostYears:$('lostYears'), lostUnit:$('lostUnit'), subline:$('subline'),
     yearsLeft:$('yearsLeft'), lostDays:$('lostDays'), wakingDays:$('wakingDays'),
-    grid:$('grid'), gridFoot:$('gridFoot'), note:$('note'), headline:document.querySelector('.headline')
+    note:$('note'), headline:document.querySelector('.headline')
   };
 
   const DAYS_YEAR = 365.25;
   const nf = n => new Intl.NumberFormat('fr-FR').format(Math.round(n));
   const nf1 = n => new Intl.NumberFormat('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1}).format(n);
   const hf = h => (Number.isInteger(h) ? nf(h) : nf1(h));
-
-  // Construit la grille une fois pour le max de semaines possible, puis on montre/cache.
-  let cells = [];
-  function ensureGrid(weeks){
-    if(cells.length === weeks) return;
-    els.grid.innerHTML = '';
-    cells = [];
-    const frag = document.createDocumentFragment();
-    for(let i=0;i<weeks;i++){
-      const c = document.createElement('div');
-      c.className = 'cell';
-      frag.appendChild(c);
-      cells.push(c);
-    }
-    els.grid.appendChild(frag);
-  }
 
   function compute(){
     let age = parseFloat(els.age.value) || 0;
@@ -282,9 +255,6 @@
 
     if(yearsLeft <= 0){
       els.headline.style.display = 'none';
-      els.grid.innerHTML = '';
-      cells = [];
-      els.gridFoot.innerHTML = '';
       els.note.innerHTML = "<span class='warn'>L'âge espéré doit être supérieur à ton âge actuel.</span> Ajuste les deux champs en haut à gauche pour lancer le calcul.";
       return;
     }
@@ -311,16 +281,6 @@
     els.yearsLeft.textContent = nf1(yearsLeft);
     els.lostDays.textContent  = nf(lostDays24);
     els.wakingDays.textContent = nf(wakingPerYear);
-
-    // ---- Grille en semaines ----
-    const weeksLeft = Math.round(yearsLeft * 52);
-    const lostWeeks = Math.min(weeksLeft, Math.round(lostDays24 / 7));
-    ensureGrid(weeksLeft);
-    for(let i=0;i<cells.length;i++){
-      cells[i].className = 'cell ' + (i < lostWeeks ? 'lost' : 'live');
-    }
-    els.gridFoot.innerHTML =
-      `<b style="color:var(--bone)">${nf(lostWeeks)} semaines</b> sur ${nf(weeksLeft)} — l'équivalent en temps plein de ce que l'écran te prend.`;
 
     // ---- Effet levier : moitié moins de scroll ----
     if(lost > 0){
